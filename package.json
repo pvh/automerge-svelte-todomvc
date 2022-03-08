@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "TodoMVC implemented in Svelte",
   "scripts": {
-    "copyfiles": "mkdir -p dist && cp node_modules/todomvc-app-css/index.css public/todomvc-app-css.css && cp node_modules/todomvc-common/base.css public/todomvc-common.css && cp node_modules/todomvc-common/base.js public/todomvc-common.js",
-    "build": "npm run copyfiles && rollup -c",
-    "dev": "npm run copyfiles && rollup -cw",
+    "copyfiles": "mkdir dist && cp node_modules/todomvc-app-css/index.css public/todomvc-app-css.css && cp node_modules/todomvc-common/base.css public/todomvc-common.css && cp node_modules/todomvc-common/base.js public/todomvc-common.js",
+    "build": "rollup -c",
+    "dev": "rollup -cw",
     "deploy": "surge public svelte-todomvc.surge.sh",
     "predeploy": "npm run build",
     "start": "http-server public & npm run dev & open http://localhost:8080"
@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/sveltejs/svelte-todomvc",
   "dependencies": {
+    "http-server": "^14.1.0",
     "todomvc-app-css": "2.2.0",
     "todomvc-common": "^1.0.5"
   },
@@ -37,7 +38,6 @@
     "@ampproject/rollup-plugin-closure-compiler": "^0.8.5",
     "rollup": "^1.7.3",
     "rollup-plugin-buble": "^0.19.2",
-    "rollup-plugin-filesize": "^6.0.1",
     "rollup-plugin-node-resolve": "^4.0.1",
     "rollup-plugin-svelte": "^5.0.3",
     "rollup-plugin-terser": "^4.0.4",
