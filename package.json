@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/sveltejs/svelte-todomvc",
   "dependencies": {
+    "automerge-wasm-pack": "^0.0.18",
     "http-server": "^14.1.0",
     "todomvc-app-css": "2.2.0",
     "todomvc-common": "^1.0.5"
