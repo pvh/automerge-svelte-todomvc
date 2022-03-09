@@ -1,16 +1,10 @@
 import TodoMVC from './TodoMVC.svelte';
-import * as Automerge from "automerge-wasm-pack"
-const ROOT = "_root"
 
-console.log(ROOT)
+import init from "automerge-wasm-pack"
 
-let doc = Automerge.create()
+init().then(() => {
+	window.todomvc = new TodoMVC({
+		target: document.querySelector('.todoapp')
+	})
+})
 
-console.log("created", doc)
-
-doc.set(ROOT, 'id', id) 
-
-
-window.todomvc = new TodoMVC({
-	target: document.querySelector('.todoapp')
-});

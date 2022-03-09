@@ -1,16 +1,18 @@
 <script>
+	import * as Automerge from 'automerge-wasm-pack'
+	let ROOT = "_root"
+
 	const ENTER_KEY = 13;
 	const ESCAPE_KEY = 27;
 
-	let currentFilter = 'all';
-	let items = [];
-	let editing = null;
+	let doc = Automerge.create()
+	doc.set_object(ROOT, "items", [])
+	
+	let fileHandle;
 
-	try {
-		items = JSON.parse(localStorage.getItem('todos-svelte')) || [];
-	} catch (err) {
-		items = [];
-	}
+	let items;
+	let currentFilter = 'all';
+	let editing = null;
 
 	const updateView = () => {
 		currentFilter = 'all';
@@ -42,11 +44,13 @@
 
 	function createNew(event) {
 		if (event.which === ENTER_KEY) {
-			items = items.concat({
+			let itemsRef = doc.value(ROOT, "items")[1]
+			doc.push_object(itemsRef, {
 				id: uuid(),
 				description: event.target.value,
 				completed: false
 			});
+			doc = doc
 			event.target.value = '';
 		}
 	}
@@ -68,6 +72,20 @@
 		});
 	}
 
+	$: {
+		items = [];
+		let itemsRef = doc.value(ROOT, "items")[1]
+		for (let i = 0; i < doc.length(itemsRef); i++) { 
+			let theItemRef = doc.value(itemsRef, i)[1]
+			let obj = {}
+
+			doc.keys(theItemRef).forEach((k) => { 
+				obj[k] = doc.value(theItemRef, k)[1]
+			 })
+			items.push(obj)
+		}
+	}
+
 	$: filtered = currentFilter === 'all'
 		? items
 		: currentFilter === 'completed'
@@ -78,14 +96,61 @@
 
 	$: numCompleted = items.filter(item => item.completed).length;
 
+	let save = async (doc, fileHandle) => {	
+		const writable = await fileHandle.createWritable();
+		await writable.write(doc.save());
+		await writable.close();
+	}
+
+
 	$: try {
-		localStorage.setItem('todos-svelte', JSON.stringify(items));
+		console.log(doc.dump(), fileHandle)
+		if (fileHandle) { save(doc, fileHandle) }
 	} catch (err) {
+		console.log('lolno')
 		// noop
+	}
+
+	async function setFileHandle() {
+		const options = {
+			types: [
+			{
+				description: 'Automerge Files',
+				accept: {
+				'application/octet-stream': ['.mrg'],
+				},
+			},
+			],
+		};
+		fileHandle = await window.showSaveFilePicker(options);
+	}
+	
+	async function loadFileHandle() {
+		const options = {
+			types: [
+			{
+				description: 'Automerge Files',
+				accept: {
+				'application/octet-stream': ['.mrg'],
+				},
+			},
+			],
+		};
+		let fileHandle2
+		[fileHandle2] = await window.showOpenFilePicker(options);
+				
+		const file = await fileHandle2.getFile();
+		const contents = await file.arrayBuffer();
+		
+		doc = Automerge.loadDoc(new Uint8Array(contents))
+		doc.dump()
 	}
 </script>
 
 <header class="header">
+	<button on:click="{setFileHandle}">New File</button>
+	<button on:click="{loadFileHandle}">Open</button>
+
 	<h1>todo</h1>
 	<input
 		class="new-todo"
