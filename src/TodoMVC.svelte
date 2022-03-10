@@ -1,4 +1,5 @@
 <script>
+	import * as IDB from 'idb-keyval';
 	import * as Automerge from 'automerge-wasm-pack'
 	let ROOT = "_root"
 
@@ -8,8 +9,8 @@
 	let doc = Automerge.create()
 	doc.set_object(ROOT, "items", [])
 	
-	let fileHandle;
-
+	let fileHandle
+	
 	let items;
 	let currentFilter = 'all';
 	let editing = null;
@@ -102,16 +103,19 @@
 		await writable.close();
 	}
 
+	let load = async() => {
+		fileHandle = await IDB.get("file")
+	}
+	
+	load();
 
 	$: try {
-		console.log(doc.dump(), fileHandle)
 		if (fileHandle) { save(doc, fileHandle) }
 	} catch (err) {
-		console.log('lolno')
 		// noop
 	}
 
-	async function setFileHandle() {
+	async function newFileHandle() {
 		const options = {
 			types: [
 			{
@@ -123,9 +127,13 @@
 			],
 		};
 		fileHandle = await window.showSaveFilePicker(options);
+		await IDB.set('file', fileHandle);
+		
+		doc = Automerge.create()
+		doc.set_object(ROOT, "items", [])
 	}
-	
-	async function loadFileHandle() {
+
+	async function saveFileHandle() {
 		const options = {
 			types: [
 			{
@@ -136,20 +144,49 @@
 			},
 			],
 		};
-		let fileHandle2
-		[fileHandle2] = await window.showOpenFilePicker(options);
-				
-		const file = await fileHandle2.getFile();
+		fileHandle = await window.showSaveFilePicker(options);
+		await IDB.set('file', fileHandle);
+	}
+	
+	async function loadFileHandle(handle) {
+		console.log('lfh', handle)
+		if (!handle) {
+			const options = {
+				mode: 'readwrite',
+				types: [
+				{
+					description: 'Automerge Files',
+					accept: {
+					'application/octet-stream': ['.mrg'],
+					},
+				},
+				],
+			};
+			[fileHandle] = await window.showOpenFilePicker(options);
+			await IDB.set('file', fileHandle);
+		}
+		else {
+			let options = { mode: 'readwrite' }
+		    if (!(await fileHandle.queryPermission(options) === 'granted' || 
+				  await fileHandle.requestPermission(options) === 'granted')) {
+					  return
+			}
+		}
+		
+		const file = await fileHandle.getFile();
 		const contents = await file.arrayBuffer();
 		
 		doc = Automerge.loadDoc(new Uint8Array(contents))
-		doc.dump()
 	}
 </script>
 
 <header class="header">
-	<button on:click="{setFileHandle}">New File</button>
-	<button on:click="{loadFileHandle}">Open</button>
+	<div>
+		<button on:click="{() => newFileHandle()}">New...</button>
+		{#if fileHandle}<button on:click="{() => loadFileHandle(fileHandle)}">{fileHandle.name}</button>{/if}
+		<button on:click="{() => loadFileHandle()}">Open...</button>
+		<button on:click="{() => saveFileHandle()}">Save As...</button>
+	</div>
 
 	<h1>todo</h1>
 	<input
