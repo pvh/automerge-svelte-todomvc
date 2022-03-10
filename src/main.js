@@ -7,4 +7,3 @@ init().then(() => {
 		target: document.querySelector('.todoapp')
 	})
 })
-
