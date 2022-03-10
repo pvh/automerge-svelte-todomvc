@@ -8,7 +8,8 @@
 
 	let doc = Automerge.create()
 	doc.set_object(ROOT, "items", [])
-	
+	doc = doc
+
 	let fileHandle
 	
 	let items;
@@ -27,12 +28,16 @@
 	window.addEventListener('hashchange', updateView);
 	updateView();
 
+	let itemsRef
+	$: itemsRef = doc.value(ROOT, "items")[1]
+
 	function clearCompleted() {
 		items = items.filter(item => !item.completed);
 	}
 
 	function remove(index) {
-		items = items.slice(0, index).concat(items.slice(index + 1));
+		doc.del(itemsRef, index)
+		doc = doc
 	}
 
 	function toggleAll(event) {
@@ -62,7 +67,10 @@
 	}
 
 	function submit(event) {
-		items[editing].description = event.target.value;
+		let itemsRef = doc.value(ROOT, "items")[1]
+		let theItem = doc.value(itemsRef, editing)[1]
+		doc.set(theItem, "description", event.target.value)
+		doc = doc
 		editing = null;
 	}
 
@@ -86,6 +94,8 @@
 			items.push(obj)
 		}
 	}
+
+	
 
 	$: filtered = currentFilter === 'all'
 		? items
@@ -115,17 +125,20 @@
 		// noop
 	}
 
-	async function newFileHandle() {
-		const options = {
-			types: [
+	const options = {
+		mode: 'readwrite',
+		suggestedName: 'todo.mrg',
+		types: [
 			{
 				description: 'Automerge Files',
 				accept: {
 				'application/octet-stream': ['.mrg'],
 				},
 			},
-			],
-		};
+		],
+	};
+	
+	async function newFileHandle() {
 		fileHandle = await window.showSaveFilePicker(options);
 		await IDB.set('file', fileHandle);
 		
@@ -134,39 +147,16 @@
 	}
 
 	async function saveFileHandle() {
-		const options = {
-			types: [
-			{
-				description: 'Automerge Files',
-				accept: {
-				'application/octet-stream': ['.mrg'],
-				},
-			},
-			],
-		};
 		fileHandle = await window.showSaveFilePicker(options);
 		await IDB.set('file', fileHandle);
 	}
 	
 	async function loadFileHandle(handle) {
-		console.log('lfh', handle)
 		if (!handle) {
-			const options = {
-				mode: 'readwrite',
-				types: [
-				{
-					description: 'Automerge Files',
-					accept: {
-					'application/octet-stream': ['.mrg'],
-					},
-				},
-				],
-			};
 			[fileHandle] = await window.showOpenFilePicker(options);
 			await IDB.set('file', fileHandle);
 		}
 		else {
-			let options = { mode: 'readwrite' }
 		    if (!(await fileHandle.queryPermission(options) === 'granted' || 
 				  await fileHandle.requestPermission(options) === 'granted')) {
 					  return
