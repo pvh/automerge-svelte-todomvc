@@ -1,17 +1,12 @@
 <script>
-  import * as IDB from 'idb-keyval'
-  import * as Automerge from 'automerge-wasm-pack'
-  let ROOT = '_root'
-
+  import { createAutomergeStore } from './store.js'
   const ENTER_KEY = 13
   const ESCAPE_KEY = 27
 
-  let doc = Automerge.create()
-  doc.set_object(ROOT, 'items', [])
-
   let fileHandle
 
-  let items
+  const store = createAutomergeStore()
+
   let currentFilter = 'all'
   let editing = null
 
@@ -27,16 +22,8 @@
   window.addEventListener('hashchange', updateView)
   updateView()
 
-  let itemsRef
-  $: itemsRef = doc.value(ROOT, 'items')[1]
-
   function clearCompleted() {
     items = items.filter((item) => !item.completed)
-  }
-
-  function remove(index) {
-    doc.del(itemsRef, index)
-    doc = doc
   }
 
   function toggleAll(event) {
@@ -49,13 +36,11 @@
 
   function createNew(event) {
     if (event.which === ENTER_KEY) {
-      let itemsRef = doc.value(ROOT, 'items')[1]
-      doc.push_object(itemsRef, {
+      store.add({
         id: uuid(),
         description: event.target.value,
         completed: false,
       })
-      doc = doc
       event.target.value = ''
     }
   }
@@ -84,19 +69,8 @@
     )
   }
 
-  $: {
-    items = []
-    let itemsRef = doc.value(ROOT, 'items')[1]
-    for (let i = 0; i < doc.length(itemsRef); i++) {
-      let theItemRef = doc.value(itemsRef, i)[1]
-      let obj = {}
-
-      doc.keys(theItemRef).forEach((k) => {
-        obj[k] = doc.value(theItemRef, k)[1]
-      })
-      items.push(obj)
-    }
-  }
+  // FIXME(ja): this is a hack to get the store to work with the existing logic
+  $: items = $store
 
   $: filtered =
     currentFilter === 'all'
@@ -108,73 +82,6 @@
   $: numActive = items.filter((item) => !item.completed).length
 
   $: numCompleted = items.filter((item) => item.completed).length
-
-  let save = async (doc, fileHandle) => {
-    const writable = await fileHandle.createWritable()
-    await writable.write(doc.save())
-    await writable.close()
-  }
-
-  let load = async () => {
-    fileHandle = await IDB.get('file')
-  }
-
-  load()
-
-  $: try {
-    if (fileHandle) {
-      save(doc, fileHandle)
-    }
-  } catch (err) {
-    // noop
-  }
-
-  const options = {
-    mode: 'readwrite',
-    suggestedName: 'todo.mrg',
-    types: [
-      {
-        description: 'Automerge Files',
-        accept: {
-          'application/octet-stream': ['.mrg'],
-        },
-      },
-    ],
-  }
-
-  async function newFileHandle() {
-    fileHandle = await window.showSaveFilePicker(options)
-    await IDB.set('file', fileHandle)
-
-    doc = Automerge.create()
-    doc.set_object(ROOT, 'items', [])
-  }
-
-  async function saveFileHandle() {
-    fileHandle = await window.showSaveFilePicker(options)
-    await IDB.set('file', fileHandle)
-  }
-
-  async function loadFileHandle(handle) {
-    if (!handle) {
-      ;[fileHandle] = await window.showOpenFilePicker(options)
-      await IDB.set('file', fileHandle)
-    } else {
-      if (
-        !(
-          (await fileHandle.queryPermission(options)) === 'granted' ||
-          (await fileHandle.requestPermission(options)) === 'granted'
-        )
-      ) {
-        return
-      }
-    }
-
-    const file = await fileHandle.getFile()
-    const contents = await file.arrayBuffer()
-
-    doc = Automerge.loadDoc(new Uint8Array(contents))
-  }
 </script>
 
 <header class="header">
@@ -223,7 +130,7 @@
             <label on:dblclick={() => (editing = index)}
               >{item.description}</label
             >
-            <button on:click={() => remove(index)} class="destroy" />
+            <button on:click={() => store.remove(index)} class="destroy" />
           </div>
 
           {#if editing === index}

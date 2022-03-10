@@ -6,7 +6,8 @@
 
 ## TODO
 
-- [ ] move automerge to a store
+- [?] move automerge to a store
+- [ ] re-add filesystem stuff to automerge store
 - [ ] can automerge wasm be in the store?
 - [ ] the new/open/save popup nightmare
 - [ ] marking complete/delete doesn't persist
