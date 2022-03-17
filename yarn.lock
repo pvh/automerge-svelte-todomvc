@@ -173,10 +173,10 @@
   "resolved" "https://registry.npmjs.org/atob/-/atob-2.1.2.tgz"
   "version" "2.1.2"
 
-"automerge-wasm-pack@^0.0.18":
-  "integrity" "sha512-A7m/ftc6H7sEl/NJgpDlFAgVjc1AmvIpODKRi2LIEEitSOOboKP+BCOV3sk57kihVyH0hSS7FMSI7oki/Gn+KQ=="
-  "resolved" "https://registry.npmjs.org/automerge-wasm-pack/-/automerge-wasm-pack-0.0.18.tgz"
-  "version" "0.0.18"
+"automerge-wasm-pack@^0.0.19":
+  "integrity" "sha512-kMQU+LgUp0ITB6SXVZg8ZsivCghRcIJ8oLS58Ddw0TzbYcKh+0euFidrG35WFek7FbVh4QYezhNSL7TdlIof/Q=="
+  "resolved" "https://registry.npmjs.org/automerge-wasm-pack/-/automerge-wasm-pack-0.0.19.tgz"
+  "version" "0.0.19"
 
 "aws-sign2@~0.7.0":
   "integrity" "sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg="
@@ -742,6 +742,16 @@
 "google-closure-compiler-js@^20181125.0.1":
   "integrity" "sha512-3+K8b18kWP6CR+qyYwa6DxN9QuijYZvBYpK8L1Va8urXvbDY07x1hA6tKeiEfHmd19pAp7MUW2Ivv2aquDAozw=="
   "resolved" "https://registry.npmjs.org/google-closure-compiler-js/-/google-closure-compiler-js-20181125.0.1.tgz"
+  "version" "20181125.0.1"
+
+"google-closure-compiler-linux@^20181125.0.1":
+  "integrity" "sha512-yPejZG9x5fIsygo6qG8NbusY4uQ9865I4664KbQ9jJbJitySORzu1/V4QoUM23efrNI4loDGt6gqDGQ1kR7dTw=="
+  "resolved" "https://registry.npmjs.org/google-closure-compiler-linux/-/google-closure-compiler-linux-20181125.0.1.tgz"
+  "version" "20181125.0.1"
+
+"google-closure-compiler-osx@^20181125.0.1":
+  "integrity" "sha512-jORcziwwlcl/VVeEJLPoPyOB0GyMSeFhzq+B9jaG3ge1q1K2Pcj0fu5rD1QMKuKx70Y3cHWbOXAQVan/jnmLKQ=="
+  "resolved" "https://registry.npmjs.org/google-closure-compiler-osx/-/google-closure-compiler-osx-20181125.0.1.tgz"
   "version" "20181125.0.1"
 
 "google-closure-compiler@20181125.0.1":
